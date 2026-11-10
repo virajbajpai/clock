@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOCTURNE — Clock</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+:root{--accent:#a8c7ff;--glass:rgba(15,20,34,.48);--line:rgba(255,255,255,.13);--muted:rgba(235,241,255,.62)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080c16;color:#f5f7ff;font-family:Manrope, sans-serif;overflow-x:hidden}
+.wall{position:fixed;inset:0;background:radial-gradient(ellipse at 18% 20%,#263c62 0,transparent 40%),radial-gradient(ellipse at 82% 78%,#38284d 0,transparent 38%),linear-gradient(135deg,#090e1b,#111a2c 55%,#090c17);z-index:-3;transition:background .5s}
+.wall:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 25%,rgba(255,255,255,.035) 48%,transparent 70%);background-size:220% 100%;animation:shine 16s linear infinite}
+.wall:after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.7) .7px,transparent .7px);background-size:38px 38px;opacity:.12}
+@keyframes shine{to{background-position:-220% 0}}
+#wallGif{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;opacity:.35;display:none}
+.overlay{position:fixed;inset:0;background:linear-gradient(180deg,rgba(5,8,16,.38),rgba(5,8,16,.62));z-index:-1;pointer-events:none}
+.app{max-width:1240px;margin:auto;padding:34px 5vw 28px;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;letter-spacing:.24em;font-size:12px;font-weight:800}.brand-mark{width:34px;height:34px;border:1px solid #ffffff55;border-radius:50%;display:grid;place-items:center;color:var(--accent);font-size:17px}
+.header-right{display:flex;align-items:center;gap:10px}.pill{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:99px;padding:9px 14px;color:#eaf0ff;font:11px 'DM Mono';letter-spacing:.08em}
+button,select,input{font:inherit}button{cursor:pointer;color:inherit}.icon-btn{border:1px solid var(--line);background:rgba(255,255,255,.06);border-radius:50%;width:39px;height:39px;color:#eaf0ff;font-size:16px;transition:.2s}.icon-btn:hover,.btn:hover{background:rgba(255,255,255,.14);transform:translateY(-1px)}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(290px,.75fr);gap:24px;align-items:center;padding:48px 0 35px}
+.hero{padding:clamp(24px,5vw,64px);border:1px solid var(--line);border-radius:30px;background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.025));backdrop-filter:blur(22px);box-shadow:0 30px 100px #0005;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;width:360px;height:360px;border-radius:50%;background:var(--accent);filter:blur(130px);opacity:.11;right:-130px;top:-180px;pointer-events:none}
+.eyebrow{font:11px 'DM Mono';letter-spacing:.23em;color:var(--muted);text-transform:uppercase}.date{font-size:clamp(14px,1.8vw,17px);color:#d5ddef;margin-top:13px;font-weight:400}
+.time{font:clamp(64px,11vw,132px)/1 'DM Mono',monospace;letter-spacing:-.085em;margin:25px 0 17px;white-space:nowrap;text-shadow:0 8px 50px #0006}.time .seconds{font-size:.38em;letter-spacing:-.04em;color:var(--accent);vertical-align:top;margin-left:10px;opacity:.9}
+.subline{display:flex;align-items:center;gap:12px;color:var(--muted);font:11px 'DM Mono';letter-spacing:.15em;text-transform:uppercase}.live-dot{width:7px;height:7px;background:#8ff0c1;border-radius:50%;box-shadow:0 0 14px #8ff0c1}
+.hero-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:52px;gap:16px;flex-wrap:wrap}.timezone{font:11px 'DM Mono';color:var(--muted);letter-spacing:.08em}.controls{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:rgba(255,255,255,.07);border-radius:99px;padding:10px 15px;font-size:11px;color:#edf2ff;transition:.2s}.btn.active{background:var(--accent);color:#101827;border-color:transparent;font-weight:800}
+.side{display:flex;flex-direction:column;gap:16px}.panel{border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(22px);border-radius:23px;padding:22px;box-shadow:0 18px 55px #0003}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.panel-title{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.tiny{font:10px 'DM Mono';color:var(--muted)}
+.gif-stage{height:180px;border-radius:15px;background:linear-gradient(135deg,rgba(138,173,226,.14),rgba(169,132,203,.12));border:1px dashed #ffffff35;display:grid;place-items:center;overflow:hidden;position:relative}
+.gif-stage img{width:100%;height:100%;object-fit:cover;display:none}.gif-placeholder{text-align:center;color:var(--muted);padding:15px}.gif-placeholder .spark{font-size:28px;color:var(--accent);margin-bottom:8px}.gif-placeholder p{font-size:11px;line-height:1.6;margin:0}
+.gif-actions{display:flex;gap:8px;margin-top:12px}.gif-actions .btn{flex:1;text-align:center}
+.url-row{display:flex;gap:7px;margin-top:10px}.url-row input{min-width:0;flex:1;background:#080d18aa;border:1px solid var(--line);border-radius:10px;padding:10px 11px;color:white;font-size:11px;outline:none}.url-row input:focus{border-color:var(--accent)}
+select{background:#101727;color:#eef2ff;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;outline:none;width:100%}
+.setting-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:13px}.setting-row span{font-size:11px;color:#dce4f5}
+.toggle{width:38px;height:22px;border-radius:99px;border:1px solid var(--line);background:#ffffff20;position:relative;padding:0}.toggle:after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.2s}.toggle.on{background:var(--accent)}.toggle.on:after{left:19px;background:#101827}
+footer{display:flex;justify-content:space-between;gap:14px;color:#ffffff68;font:10px 'DM Mono';letter-spacing:.1em;text-transform:uppercase;padding-top:10px}
+.analog{width:230px;height:230px;border:1px solid #ffffff60;border-radius:50%;margin:30px auto 25px;position:relative;background:radial-gradient(circle,#ffffff08,transparent 68%);display:none;box-shadow:0 0 50px #0003,inset 0 0 35px #ffffff08}
+.analog .tick{position:absolute;left:50%;top:8px;width:1px;height:8px;background:#ffffffa0;transform-origin:0 107px}.analog .hand{position:absolute;left:50%;bottom:50%;transform-origin:50% 100%;border-radius:9px;transform:translateX(-50%) rotate(0deg)}.hour{width:4px;height:57px;background:#f2f5ff}.minute{width:3px;height:79px;background:#dce8ff}.second{width:1px;height:88px;background:var(--accent)}.pin{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--accent);left:50%;top:50%;transform:translate(-50%,-50%)}
+@media(max-width:850px){main{grid-template-columns:1fr;padding:35px 0}.side{display:grid;grid-template-columns:1fr 1fr}.time{font-size:clamp(55px,12vw,100px)}}
+@media(max-width:570px){.app{padding:22px 18px}.side{display:flex}.hero{padding:27px 22px}.time{font-size:clamp(48px,13vw,75px)}.hero-bottom{margin-top:35px}footer{flex-direction:column}.header-right .pill{display:none}}
+</style>
+</head>
+<body>
+<div class="wall" id="wall"></div><img id="wallGif" alt=""><div class="overlay"></div>
+<div class="app">
+<header><div class="brand"><div class="brand-mark">◷</div> NOCTURNE <span style="color:#ffffff55;font-weight:400;letter-spacing:.1em">/ CLOCK</span></div><div class="header-right"><span class="pill" id="headerZone">IST · UTC+5:30</span><button class="icon-btn" id="fullscreen" title="Toggle fullscreen">⛶</button></div></header>
+<main>
+<section class="hero">
+<div class="eyebrow">Your time, beautifully measured</div>
+<div class="date" id="date">Tuesday, November 10</div>
+<div class="time" id="digital"><span id="hours">16:15</span><span class="seconds" id="seconds">42</span></div>
+<div class="analog" id="analog"><div class="hand hour" id="hourHand"></div><div class="hand minute" id="minuteHand"></div><div class="hand second" id="secondHand"></div><div class="pin"></div></div>
+<div class="subline"><span class="live-dot"></span> LIVE LOCAL TIME <span style="opacity:.4">/</span> <span id="dayProgress">DAY IN PROGRESS</span></div>
+<div class="hero-bottom"><div class="timezone" id="zoneLabel">ASIA / KOLKATA</div><div class="controls"><button class="btn active" id="digitalBtn">Digital</button><button class="btn" id="analogBtn">Analog</button><button class="btn" id="formatBtn">24-hour</button></div></div>
+</section>
+<aside class="side">
+<section class="panel">
+<div class="panel-head"><div class="panel-title">Motion canvas</div><span class="tiny">GIF / VISUALS</span></div>
+<div class="gif-stage"><img id="gifPreview" alt="Your GIF preview"><div class="gif-placeholder" id="gifPlaceholder"><div class="spark">✳</div><p>Give your clock a little motion.<br>Upload a GIF or paste a GIF link.</p></div></div>
+<div class="gif-actions"><label class="btn" for="gifFile">Upload GIF</label><button class="btn" id="clearGif">Clear</button><input id="gifFile" type="file" accept="image/gif,image/*" hidden></div>
+<div class="url-row"><input id="gifUrl" placeholder="Paste GIF image URL…"><button class="btn" id="applyUrl">Add</button></div>
+</section>
+<section class="panel">
+<div class="panel-head"><div class="panel-title">Preferences</div><span class="tiny">PERSONALISE</span></div>
+<div class="setting-row"><span>Time zone</span></div><select id="timezone"><option value="local">Local time · India</option><option value="Asia/Tokyo">Tokyo</option><option value="Europe/London">London</option><option value="America/New_York">New York</option><option value="UTC">UTC</option></select>
+<div class="setting-row"><span>Show seconds</span><button class="toggle on" id="secondsToggle" aria-label="Toggle seconds"></button></div>
+<div class="setting-row"><span>GIF as background</span><button class="toggle" id="bgToggle" aria-label="Toggle GIF background"></button></div>
+</section>
+</aside>
+</main>
+<footer><span>NOCTURNE — A QUIETER WAY TO KEEP TIME</span><span>DESIGNED FOR YOUR DESKTOP</span></footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let use24=true,showSeconds=true,mode='digital',zone='local',gifData='';
+function getNow(){return new Date()}
+function parts(d){return new Intl.DateTimeFormat('en-GB',{timeZone:zone==='local'?'Asia/Kolkata':zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d).reduce((a,p)=>(a[p.type]=p.value,a),{})}
+function update(){
+ const d=getNow(),p=parts(d),h=+p.hour,m=+p.minute,s=+p.second;
+ let displayHour=use24?String(h).padStart(2,'0'):String((h%12)||12).padStart(2,'0');
+ $('hours').textContent=displayHour+':'+p.minute;
+ $('seconds').textContent=p.second;
+ $('seconds').style.display=showSeconds?'inline':'none';
+ $('date').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:zone==='local'?'Asia/Kolkata':zone}).format(d);
+ $('dayProgress').textContent=Math.floor(((h*3600+m*60+s)/86400)*100)+'% OF DAY ELAPSED';
+ const names={local:'ASIA / KOLKATA', 'Asia/Tokyo':'ASIA / TOKYO','Europe/London':'EUROPE / LONDON','America/New_York':'AMERICA / NEW YORK','UTC':'UTC / UNIVERSAL'};
+ $('zoneLabel').textContent=names[zone];$('headerZone').textContent=zone==='local'?'IST · UTC+5:30':zone.toUpperCase();
+ $('hourHand').style.transform=`translateX(-50%) rotate(${(h%12)*30+m*.5}deg)`;
+ $('minuteHand').style.transform=`translateX(-50%) rotate(${m*6+s*.1}deg)`;
+ $('secondHand').style.transform=`translateX(-50%) rotate(${s*6}deg)`;
+}
+for(let i=0;i<60;i++){let t=document.createElement('i');t.className='tick';t.style.transform=`rotate(${i*6}deg)`;t.style.height=i%5===0?'12px':'6px';$('analog').appendChild(t)}
+$('digitalBtn').onclick=()=>{mode='digital';$('digital').style.display='block';$('analog').style.display='none';$('digitalBtn').classList.add('active');$('analogBtn').classList.remove('active')};
+$('analogBtn').onclick=()=>{mode='analog';$('digital').style.display='none';$('analog').style.display='block';$('analogBtn').classList.add('active');$('digitalBtn').classList.remove('active')};
+$('formatBtn').onclick=()=>{use24=!use24;$('formatBtn').textContent=use24?'24-hour':'12-hour';update()};
+$('secondsToggle').onclick=()=>{$('secondsToggle').classList.toggle('on');showSeconds=!showSeconds;update()};
+$('timezone').onchange=e=>{zone=e.target.value;update()};
+$('gifFile').onchange=e=>{const f=e.target.files[0];if(!f)return;if(gifData.startsWith('blob:'))URL.revokeObjectURL(gifData);gifData=URL.createObjectURL(f);setGif(gifData)};
+function setGif(src){$('gifPreview').src=src;$('gifPreview').style.display='block';$('gifPlaceholder').style.display='none';$('wallGif').src=src;if($('bgToggle').classList.contains('on'))$('wallGif').style.display='block'}
+$('applyUrl').onclick=()=>{const u=$('gifUrl').value.trim();if(u){gifData=u;setGif(u)}};
+$('gifUrl').addEventListener('keydown',e=>{if(e.key==='Enter')$('applyUrl').click()});
+$('clearGif').onclick=()=>{if(gifData.startsWith('blob:'))URL.revokeObjectURL(gifData);gifData='';$('gifPreview').removeAttribute('src');$('gifPreview').style.display='none';$('gifPlaceholder').style.display='block';$('wallGif').style.display='none';$('gifUrl').value='';$('bgToggle').classList.remove('on')};
+$('bgToggle').onclick=()=>{const on=$('bgToggle').classList.toggle('on');$('wallGif').style.display=on&&gifData?'block':'none'};
+$('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
+update();setInterval(update,250);
+</script>
+</body></html>
